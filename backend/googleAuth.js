@@ -10,8 +10,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-      passReqToCallback: true,
+      callbackURL: "http://localhost:5000/auth/google/callback",
+      passReqToCallback: true
     },
     async (request, accessToken, refreshToken, profile, done) => {
       try {
@@ -22,7 +22,7 @@ passport.use(
           user = await User.create({
             fullname: profile.displayName,
             email: profile.email,
-            password: "", // or generate a random string
+            googleId: profile.id
           });
         }
         done(null, user);

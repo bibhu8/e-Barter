@@ -14,6 +14,7 @@ import { saveChatMessageSocket } from "./controllers/chatController.js"; // New 
 import session from "express-session";
 import passport from "./googleAuth.js"; // File that configures Passport with Google OAuth strategy
 import jwt from "jsonwebtoken";
+import { handleGoogleCallback, getMe } from "./controllers/authController.js";
 
 // Load environment variables
 dotenv.config();
@@ -55,24 +56,53 @@ app.use(passport.session());
 
 // ----- Google Auth Routes -----
 // Route to initiate Google authentication
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
+app.get("/auth/google/new", (req, res) => {
+  // Clear any existing sessions
+  req.session = null;
+  
+  passport.authenticate("google", {
+    scope: ["email", "profile"],
+    prompt: "select_account", // This forces the account chooser
+    session: false
+  })(req, res);
+});
 
-// Callback route for Google to redirect to after authentication
 app.get(
   "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login", session: false }),
-  (req, res) => {
-    // On successful authentication, generate a JWT token for the user
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-    // Redirect to your frontend with the token (adjust URL as needed)
-    res.redirect(`http://localhost:3000?token=${token}`);
+  passport.authenticate("google", { 
+    failureRedirect: "http://localhost:3000/login",
+    session: false
+  }),
+  async (req, res) => {
+    try {
+      const { token, user } = await handleGoogleCallback(req, req.user);
+      // Redirect with token
+      res.redirect(`http://localhost:3000/login?token=${token}`);
+    } catch (error) {
+      console.error("Callback error:", error);
+      res.redirect("http://localhost:3000/login?error=auth_failed");
+    }
   }
 );
+
+// Add middleware to protect routes
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { id: decoded.id };
+    next();
+  } catch (error) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+// Protected route for getting user details
+app.get("/api/auth/me", authMiddleware, getMe);
 
 // Routes
 app.use("/api/items", itemRoutes);

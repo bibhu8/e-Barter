@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -7,10 +7,50 @@ function Login() {
   const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
 
-  const handleGoogleLogin = () => {
-    // Redirect user to the Google authentication route
-    window.location.href = "http://localhost:5000/auth/google";
+  const handleGoogleLogin = (e) => {
+    e.preventDefault();
+    
+    // Clear existing auth data
+    localStorage.clear();
+    
+    // Force Google to show account selector
+    const googleAuthUrl = "http://localhost:5000/auth/google/new";
+    window.location.href = googleAuthUrl;
   };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Clear the URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Store the token
+      localStorage.setItem("token", token);
+      
+      // Get user details with the token
+      axios.get("http://localhost:5000/api/auth/me", {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.data && response.data.user) {
+          localStorage.setItem("userId", response.data.user._id);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          navigate("/");
+        } else {
+          setMessage({ text: "Invalid user data received", type: "error" });
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching user details:", error);
+        setMessage({ text: "Failed to get user details", type: "error" });
+      });
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -103,10 +143,14 @@ function Login() {
                 {message.text}
               </div>
             )}
-
-<button onClick={handleGoogleLogin} className="btn google-btn">
-      Sign in with Google
-    </button>
+         <p style = {{textAlign: "center"}}>OR</p>
+            <button 
+              type="button" 
+              onClick={handleGoogleLogin} 
+              className="btn submit-btn"
+            >
+              Sign in with Google
+            </button>
 
             <div className="auth-redirect">
               Don't have an account? <Link to="/signup">Sign Up</Link>
