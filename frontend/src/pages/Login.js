@@ -14,7 +14,7 @@ function Login() {
     localStorage.clear();
     
     // Force Google to show account selector
-    const googleAuthUrl = "  https://e-barter-production.up.railway.app/auth/google/new";
+    const googleAuthUrl = "  https://e-barter.onrender.com/auth/google/new";
     window.location.href = googleAuthUrl;
   };
 
