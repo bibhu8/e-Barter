@@ -62,7 +62,9 @@ app.get("/auth/google/new", (req, res) => {
   
   passport.authenticate("google", {
     scope: ["email", "profile"],
-    prompt: "select_account", // This forces the account chooser
+    prompt: "select_account", // Force account selection
+    accessType: 'offline',
+    state: req.query.state, // Pass through the state parameter
     session: false
   })(req, res);
 });

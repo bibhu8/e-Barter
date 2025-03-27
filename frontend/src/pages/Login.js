@@ -10,17 +10,36 @@ function Login() {
   const handleGoogleLogin = (e) => {
     e.preventDefault();
     
-    // Clear existing auth data
+    // Clear ALL existing auth data
     localStorage.clear();
+    sessionStorage.clear();
     
-    // Force Google to show account selector
-    const googleAuthUrl = "  https://e-barter.onrender.com/auth/google/new";
-    window.location.href = googleAuthUrl;
+    // Clear any existing cookies
+    document.cookie.split(";").forEach(function(c) { 
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    
+    // Force Google to show account selector with additional parameters
+    const googleAuthUrl = `${process.env.REACT_APP_BACKEND_URL}/auth/google/new`;
+    const randomState = Math.random().toString(36).substring(7);
+    
+    // Store state to prevent CSRF
+    sessionStorage.setItem('googleAuthState', randomState);
+    
+    // Add prompt and state parameters
+    const finalUrl = `${googleAuthUrl}?prompt=select_account&state=${randomState}`;
+    window.location.href = finalUrl;
   };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const error = urlParams.get('error');
+    
+    if (error) {
+      setMessage({ text: "Google authentication failed", type: "error" });
+      return;
+    }
     
     if (token) {
       // Clear the URL parameters
@@ -30,9 +49,7 @@ function Login() {
       localStorage.setItem("token", token);
       
       // Get user details with the token
-      axios.get(
-        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/me`
-      `${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, {
+      axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -49,7 +66,10 @@ function Login() {
       })
       .catch(error => {
         console.error("Error fetching user details:", error);
-        setMessage({ text: "Failed to get user details", type: "error" });
+        setMessage({ 
+          text: error.response?.data?.message || "Failed to get user details", 
+          type: "error" 
+        });
       });
     }
   }, [navigate]);
@@ -62,21 +82,23 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post(
-        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/login`
         `${process.env.REACT_APP_BACKEND_URL}/api/auth/login`,
         formData
       );
-      if (res.status === 200) {
+      if (res.data.token) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userId", res.data.user._id);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-
         navigate("/");
       } else {
-        setMessage({ text: res.data.message, type: "error" });
+        setMessage({ text: "Invalid credentials", type: "error" });
       }
     } catch (error) {
-      setMessage({ text: "An error occurred", type: "error" });
+      // More specific error message
+      setMessage({ 
+        text: error.response?.data?.message || "Invalid email or password", 
+        type: "error" 
+      });
     }
   };
 
