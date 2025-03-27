@@ -70,17 +70,20 @@ app.get("/auth/google/new", (req, res) => {
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", { 
-    failureRedirect: `http://${process.env.REACT_APP_IP_CONFIG}:3000/login`,
+    //failureRedirect: `http://${process.env.REACT_APP_IP_CONFIG}:3000/login`,
+    failureRedirect: `https://e-barter.vercel.app/login`,
     session: false
   }),
   async (req, res) => {
     try {
       const { token, user } = await handleGoogleCallback(req, req.user);
       // Redirect with token
-      res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?token=${token}`);
+      //res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?token=${token}`);
+        res.redirect(`https://e-barter.vercel.app/login?token=${token}`);
     } catch (error) {
       console.error("Callback error:", error);
-      res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?error=auth_failed`);
+      //res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?error=auth_failed`);
+      res.redirect(`https://e-barter.vercel.app/login?error=auth_failed`);
     }
   }
 );
