@@ -10,25 +10,22 @@ function Login() {
   const handleGoogleLogin = (e) => {
     e.preventDefault();
     
-    // Clear ALL existing auth data
+    // Clear existing auth data
     localStorage.clear();
     sessionStorage.clear();
     
-    // Clear any existing cookies
-    document.cookie.split(";").forEach(function(c) { 
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    
-    // Force Google to show account selector with additional parameters
+    // Force Google to show account selector
     const googleAuthUrl = `${process.env.REACT_APP_BACKEND_URL}/auth/google/new`;
-    const randomState = Math.random().toString(36).substring(7);
     
-    // Store state to prevent CSRF
-    sessionStorage.setItem('googleAuthState', randomState);
-    
-    // Add prompt and state parameters
-    const finalUrl = `${googleAuthUrl}?prompt=select_account&state=${randomState}`;
-    window.location.href = finalUrl;
+    // Remove any existing Google OAuth cookies
+    document.cookie.split(";").forEach(function(c) { 
+      if (c.includes('G_AUTHUSER') || c.includes('G_ENABLED_IDPS')) {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      }
+    });
+
+    // Redirect to Google auth with required parameters
+    window.location.href = `${googleAuthUrl}?prompt=select_account&access_type=offline`;
   };
 
   useEffect(() => {

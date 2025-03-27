@@ -10,8 +10,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "  https://e-barter.onrender.com/auth/google/callback",
-      passReqToCallback: true
+      callbackURL: `${process.env.GOOGLE_CALLBACK_URL}`,
+      passReqToCallback: true,
     },
     async (request, accessToken, refreshToken, profile, done) => {
       try {
@@ -25,9 +25,9 @@ passport.use(
             googleId: profile.id
           });
         }
-        done(null, user);
+        return done(null, user);
       } catch (error) {
-        done(error, null);
+        return done(error, null);
       }
     }
   )
