@@ -19,7 +19,8 @@ function SignUp() {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/signup`
+        `${process.env.REACT_APP_BACKEND_URL}/api/auth/signup`,
         formData
       );
       if (res.status === 201) {

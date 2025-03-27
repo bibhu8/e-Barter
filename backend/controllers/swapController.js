@@ -270,4 +270,28 @@ export const deleteRequest = async (req, res) => {
   }
 };
 
+export const updateSwapStatus = async (req, res) => {
+  try {
+    const swap = await SwapRequest.findById(req.params.swapId);
+    if (!swap) {
+      return res.status(404).json({ message: "Swap request not found" });
+    }
+
+    swap.status = req.body.status;
+    await swap.save();
+
+    // Emit socket event for status update
+    io.emit("swap:status_update", {
+      requesterId: swap.requesterId,
+      receiverId: swap.receiverId,
+      swapId: swap._id,
+      status: swap.status
+    });
+
+    res.json({ message: "Swap status updated successfully", swap });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 

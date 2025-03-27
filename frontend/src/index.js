@@ -22,7 +22,9 @@ function App() {
 
   useEffect(() => {
     // Connect to the socket server running at http://localhost:5000
-    const socketConnection = io('http://localhost:5000');
+    const socketConnection = io(
+      //`http://${process.env.REACT_APP_IP_CONFIG}:5000`
+       `${process.env.REACT_APP_BACKEND_URL}`);
     setSocket(socketConnection);
 
     // Cleanup: Disconnect when the component is unmounted
@@ -82,3 +84,4 @@ root.render(
     <App />
   </React.StrictMode>
 );
+console.log(process.env.REACT_APP_IP_CONFIG);

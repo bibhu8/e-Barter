@@ -14,7 +14,7 @@ function Login() {
     localStorage.clear();
     
     // Force Google to show account selector
-    const googleAuthUrl = "http://localhost:5000/auth/google/new";
+    const googleAuthUrl = "  https://e-barter-production.up.railway.app/auth/google/new";
     window.location.href = googleAuthUrl;
   };
 
@@ -30,7 +30,9 @@ function Login() {
       localStorage.setItem("token", token);
       
       // Get user details with the token
-      axios.get("http://localhost:5000/api/auth/me", {
+      axios.get(
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/me`
+      `${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -60,7 +62,8 @@ function Login() {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/login`
+        `${process.env.REACT_APP_BACKEND_URL}/api/auth/login`,
         formData
       );
       if (res.status === 200) {

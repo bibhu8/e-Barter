@@ -70,17 +70,17 @@ app.get("/auth/google/new", (req, res) => {
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", { 
-    failureRedirect: "http://localhost:3000/login",
+    failureRedirect: `http://${process.env.REACT_APP_IP_CONFIG}:3000/login`,
     session: false
   }),
   async (req, res) => {
     try {
       const { token, user } = await handleGoogleCallback(req, req.user);
       // Redirect with token
-      res.redirect(`http://localhost:3000/login?token=${token}`);
+      res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?token=${token}`);
     } catch (error) {
       console.error("Callback error:", error);
-      res.redirect("http://localhost:3000/login?error=auth_failed");
+      res.redirect(`http://${process.env.REACT_APP_IP_CONFIG}:3000/login?error=auth_failed`);
     }
   }
 );
@@ -156,6 +156,45 @@ io.on("connection", (socket) => {
 socket.on("delete-chat", (chatId) => {
   socket.to(chatId).emit("chat:deleted", { chatId });
   console.log("Emitted chat:deleted event for chatId:", chatId);
+});
+
+// Add new swap request event handler
+socket.on("swap:request", async (data) => {
+  try {
+    console.log("Received swap request:", data);
+    // data should contain: receiverId, swapId
+    
+    // Emit to the receiver's room
+    io.to(data.receiverId).emit("swap:notification", {
+      type: "new_request",
+      swapId: data.swapId,
+      message: "You have received a new swap request"
+    });
+  } catch (error) {
+    console.error("Error handling swap request notification:", error);
+  }
+});
+
+// Add swap status update event
+socket.on("swap:status_update", async (data) => {
+  try {
+    // Emit to both parties involved in the swap
+    io.to(data.requesterId).emit("swap:notification", {
+      type: "status_update",
+      swapId: data.swapId,
+      status: data.status,
+      message: `Swap request ${data.status}`
+    });
+    
+    io.to(data.receiverId).emit("swap:notification", {
+      type: "status_update",
+      swapId: data.swapId,
+      status: data.status,
+      message: `Swap request ${data.status}`
+    });
+  } catch (error) {
+    console.error("Error handling swap status update:", error);
+  }
 });
 
 // Handle client disconnect

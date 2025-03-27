@@ -138,7 +138,8 @@ function Home({ socket }) {
         const token = localStorage.getItem("token");
         if (!token) {
           const itemsRes = await axios.get(
-            "http://localhost:5000/api/items/getItem"
+            //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/items/getItem`
+            `${process.env.REACT_APP_BACKEND_URL}/api/items/getItem`
           );
           console.log(itemsRes.data.items); // Log items to see if they are fetched correctly
           setItems(itemsRes.data.items);
@@ -146,13 +147,19 @@ function Home({ socket }) {
         }
 
         const [userRes, requestsRes, itemsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/auth/me", {
+          axios.get(
+            //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/auth/me`
+            `${process.env.REACT_APP_BACKEND_URL}/api/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/swap", {
+          axios.get(
+            //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/swap`
+            `${process.env.REACT_APP_BACKEND_URL}/api/swap`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/items/otheruser", {
+          axios.get(
+            //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/items/otheruser`
+            `${process.env.REACT_APP_BACKEND_URL}/api/items/otheruser`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -209,7 +216,8 @@ function Home({ socket }) {
       console.log(`Sending accept request for swap ID: ${requestId}`);
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `http://localhost:5000/api/swap/${requestId}/accept`,
+       // `http://${process.env.REACT_APP_IP_CONFIG}:5000/api/swap/${requestId}/accept`
+       `${process.env.REACT_APP_BACKEND_URL}/api/swap/${requestId}/accept`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -237,7 +245,8 @@ function Home({ socket }) {
   const handleReject = async (requestId) => {
     try {
       const { data: updatedRequest } = await axios.put(
-        `http://localhost:5000/api/swap/${requestId}/reject`,
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/swap/${requestId}/reject`
+        `${process.env.REACT_APP_BACKEND_URL}/api/swap/${requestId}/reject`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -256,7 +265,9 @@ function Home({ socket }) {
 
   const handleDeleteRequest = async (requestId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/swap/${requestId}`, {
+      await axios.delete(
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/swap/${requestId}`
+        `${process.env.REACT_APP_BACKEND_URL}/api/swap/${requestId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       // Optimistically update the UI:
@@ -516,5 +527,7 @@ function Home({ socket }) {
     </div>
   );
 }
+console.log("API IP:", process.env.REACT_APP_IP_CONFIG);
 
+console.log("hi")
 export default Home;

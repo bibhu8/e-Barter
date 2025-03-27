@@ -40,7 +40,8 @@ function OfferSwap({ socket }) {
     const fetchDesiredItem = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/items/getItem/${itemId}`
+          //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/items/getItem/${itemId}`
+          `${process.env.REACT_APP_BACKEND_URL}/api/items/getItem/${itemId}`
         );
         setDesiredItem(res.data);
       } catch (error) {
@@ -51,7 +52,9 @@ function OfferSwap({ socket }) {
     // Fetch user's items
     const fetchMyItems = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/items/user", {
+        const res = await axios.get(
+          //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/items/user`
+          `${process.env.REACT_APP_BACKEND_URL}/api/items/user`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -71,7 +74,8 @@ function OfferSwap({ socket }) {
       setLoading(true);
       setError("");
       await axios.post(
-        "http://localhost:5000/api/swap",
+        //`http://${process.env.REACT_APP_IP_CONFIG}:5000/api/swap`
+         `${process.env.REACT_APP_BACKEND_URL}/api/swap`,
         { offeredItem: offeredItemId, desiredItem: itemId },
         {
           headers: {
